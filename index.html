@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Cadastro de Lojas</title>
+<style>
+    body { font-family: Arial; margin: 0; background: #f5f5f5; }
+    header { background: #333; color: white; padding: 15px; text-align: center; }
+    nav { display: flex; background: #444; }
+    nav button {
+        flex: 1; padding: 15px; background: #444; border: none; color: white;
+        font-size: 16px; cursor: pointer;
+    }
+    nav button.active { background: #666; }
+    section { display: none; padding: 20px; }
+    section.active { display: block; }
+    .card {
+        background: white; padding: 15px; margin: 10px 0;
+        border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .produto-item { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<header><h1>Cadastro de Lojas</h1></header>
+
+<nav>
+    <button onclick="mostrarAba('clientes')" class="active">Clientes</button>
+    <button onclick="mostrarAba('lojistas')">Lojistas</button>
+</nav>
+
+<!-- ABA CLIENTES -->
+<section id="clientes" class="active">
+    <h2>Lojas Cadastradas</h2>
+    <div id="listaLojas"></div>
+</section>
+
+<!-- ABA LOJISTAS -->
+<section id="lojistas">
+    <h2>Cadastrar Loja</h2>
+
+    <form id="formLoja">
+        <label>Nome da Loja:</label><br>
+        <input type="text" id="nome" required><br><br>
+
+        <label>Telefone:</label><br>
+        <input type="text" id="telefone" required><br><br>
+
+        <label>Endereço:</label><br>
+        <input type="text" id="endereco" required><br><br>
+
+        <label>Foto da Loja (URL):</label><br>
+        <input type="text" id="fotoLoja" required><br><br>
+
+        <h3>Produtos</h3>
+        <div id="produtos"></div>
+        <button type="button" onclick="adicionarProduto()">Adicionar Produto</button><br><br>
+
+        <button type="submit">Salvar Loja</button>
+    </form>
+</section>
+
+<script>
+// Trocar abas
+function mostrarAba(aba) {
+    document.querySelectorAll("section").forEach(sec => sec.classList.remove("active"));
+    document.getElementById(aba).classList.add("active");
+
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    event.target.classList.add("active");
+
+    if (aba === "clientes") carregarLojas();
+}
+
+// Adicionar campos de produto
+function adicionarProduto() {
+    const div = document.createElement("div");
+    div.className = "produto-item";
+    div.innerHTML = `
+        <label>Foto do Produto (URL):</label>
+        <input type="text" class="fotoProduto" required><br>
+        <label>Descrição:</label>
+        <input type="text" class="descProduto" required><br><br>
+    `;
+    document.getElementById("produtos").appendChild(div);
+}
+
+// Salvar loja no LocalStorage
+document.getElementById("formLoja").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const produtos = [];
+    document.querySelectorAll(".produto-item").forEach(p => {
+        produtos.push({
+            foto: p.querySelector(".fotoProduto").value,
+            descricao: p.querySelector(".descProduto").value
+        });
+    });
+
+    const loja = {
+        nome: document.getElementById("nome").value,
+        telefone: document.getElementById("telefone").value,
+        endereco: document.getElementById("endereco").value,
+        fotoLoja: document.getElementById("fotoLoja").value,
+        produtos: produtos
+    };
+
+    let lojas = JSON.parse(localStorage.getItem("lojas") || "[]");
+    lojas.push(loja);
+    localStorage.setItem("lojas", JSON.stringify(lojas));
+
+    alert("Loja cadastrada com sucesso!");
+
+    document.getElementById("formLoja").reset();
+    document.getElementById("produtos").innerHTML = "";
+});
+
+// Listar lojas para clientes
+function carregarLojas() {
+    let lojas = JSON.parse(localStorage.getItem("lojas") || "[]");
+    const div = document.getElementById("listaLojas");
+    div.innerHTML = "";
+
+    lojas.forEach(loja => {
+        const el = document.createElement("div");
+        el.className = "card";
+        el.innerHTML = `
+            <h3>${loja.nome}</h3>
+            <p><b>Telefone:</b> ${loja.telefone}</p>
+            <p><b>Endereço:</b> ${loja.endereco}</p>
+            <img src="${loja.fotoLoja}" width="200"><br><br>
+            <h4>Produtos:</h4>
+        `;
+
+        loja.produtos.forEach(p => {
+            el.innerHTML += `
+                <img src="${p.foto}" width="120"><br>
+                <p>${p.descricao}</p>
+            `;
+        });
+
+        div.appendChild(el);
+    });
+}
+
+// Carrega lojas ao abrir a página
+carregarLojas();
+</script>
+
+</body>
+</html>
